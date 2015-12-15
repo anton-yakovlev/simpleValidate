@@ -1,0 +1,1 @@
+# Simple jQuery Validate Plugin by Anton Yakovlev

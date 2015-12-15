@@ -1,0 +1,13 @@
+{
+  "name": "simple-validate",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:anton-yakovlev/simple-validate.git"
+  },
+  "version": "0.0.1",
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^1.5.1"
+  }
+}

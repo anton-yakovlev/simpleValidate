@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>jQuery Plugin</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <h1>jQuery Validate Plugin by AntonY</h1>
+
+  <div class="modal" id="modalAddProject">
+    <form class="add-project-form" data-url="./server/form.php">
+      <div class="modal__body">
+            <fieldset class="add-project-form__fieldset">
+                <label for="projectName" class="add-project-form__label">Название проекта</label>
+                <input type="text" id="projectName" name="projectName" class="add-project-form__input"
+                       placeholder="Введите название" data-empty-error="custom empty message">
+            </fieldset>
+
+            <fieldset class="add-project-form__fieldset">
+                <label for="projectImage" class="add-project-form__label">Картинка проекта</label>
+                <input type="text" id="projectImage" name="projectImage" class="add-project-form__input"
+                       placeholder="Загрузите изображение">
+            </fieldset>
+
+            <fieldset class="add-project-form__fieldset">
+                <label for="projectUrl" class="add-project-form__label">URL проекта</label>
+                <input type="text" id="projectUrl" name="projectUrl" class="add-project-form__input"
+                       placeholder="Добавьте ссылку">
+            </fieldset>
+
+            <fieldset class="add-project-form__fieldset">
+                <label for="projectDescription" class="add-project-form__label">Сообщение</label>
+                            <textarea name="projectDescription" id="projectDescription" class="add-project-form__textarea"
+                                      placeholder="Кратко в чем суть"></textarea>
+            </fieldset>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn-primary" type="submit">Добавить</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="js/jquery.min.js"></script>
+  <script src="js/jquery.bpopup.min.js"></script>
+  <script src="js/simpleValidate.min.js"></script>
+
+  <script>
+      $('#modalAddProject form').validate({});
+  </script>
+
+</body>
+</html>
