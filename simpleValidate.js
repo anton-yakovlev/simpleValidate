@@ -4,6 +4,7 @@
     var defaults = {
       errorInputClass: 'error',
       errorLabelClass: 'label-error',
+      errorLabelLeftClass: 'label-error_left',
       emptyMessage: 'Заполните поле'
     };
 
@@ -81,7 +82,10 @@
         function _doInvalid(selector){
           var itemId = selector.attr('id'),
               errorLabelId = selector.attr('name') + '-error',
-              errorLabelMessage = selector.attr('data-empty-error');
+              errorLabelLeft = selector.attr('data-error-left'),
+              errorLabelLeftClass = selector.attr('data-error-left-class'),
+              errorLabelMessage = selector.attr('data-empty-error'),
+              errorLabelClasses;
 
           selector.addClass(settings.errorInputClass);
           errors.push(itemId);
@@ -90,10 +94,18 @@
             $('<label>', {
               id: errorLabelId,
               text: function(){
-                return errorLabelMessage ? errorLabelMessage : settings.emptyMessage
+                return errorLabelMessage ? errorLabelMessage : settings.emptyMessage;
               },
               'for': itemId,
-              'class': settings.errorLabelClass
+              'class': (function() {
+                if (errorLabelLeft) {
+                  errorLabelClasses = settings.errorLabelClass + ' ' + (errorLabelLeftClass ? errorLabelLeftClass : settings.errorLabelLeftClass);
+                } else {
+                  errorLabelClasses = settings.errorLabelClass;
+                }
+
+                return errorLabelClasses;
+              })()
             }).insertAfter(selector);
           }
         }
