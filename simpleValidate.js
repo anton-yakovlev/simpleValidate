@@ -15,17 +15,21 @@
         this.init = function () {
             console.log('[ Start Validate Module ... ]');
 
-            var form = $(this);
+            var form = $(this),
+                //formClass = '.' + form.attr('class'),
                 formInputs = form.find('input, textarea'),
                 errors = [],
                 serverUrl = form.attr('data-url');
 
-            console.log(form);
+            /*console.log(form);
             console.log(formInputs);
+            console.log(formClass);*/
 
             //Start module when submitted
             $(document).on('submit', form, function (e) {
                 e.preventDefault();
+
+                console.log('[ Submit pushed ... ]');
 
                 _checkEvery(formInputs);
                 _addListeners(formInputs);
