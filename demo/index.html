@@ -46,7 +46,11 @@
   <script src="js/simpleValidate.min.js"></script>
 
   <script>
-      $('#modalAddProject form').validate({});
+      $('#modalAddProject form').bPopup({}, function(){
+          $('#modalAddProject form').validate();
+      });
+
+      //$('#modalAddProject form').validate({});
   </script>
 
 </body>

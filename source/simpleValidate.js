@@ -23,7 +23,9 @@
           settings = this.settings,
           serverUrl = form.attr('data-url');
 
-        form.on('submit', function(e){
+        console.log(form);
+
+        $(document).on('submit', form, function(e){
           e.preventDefault();
 
           _checkEvery(formInputs);
@@ -38,7 +40,7 @@
               var currentItem = $(selectors[i]);
 
               (function(ci) {
-                  currentItem.on('keyup', function(){
+                  $(document).on('keyup', currentItem, function(){
                     _checkCurrent(ci);
                   });
               })(currentItem);
