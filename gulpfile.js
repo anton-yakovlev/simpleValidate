@@ -15,13 +15,13 @@ gulp.task('js:min', function () {
         .pipe(rename({
             extname: '.min.js'
         }))
-        .pipe(gulp.dest('./'))
-        .pipe(gulp.dest('./demo/js'));
+        .pipe(gulp.dest('./'));
 });
 
 gulp.task('js:copy', function () {
     return gulp.src('./source/**/*.js')
-        .pipe(gulp.dest('./'));
+        .pipe(gulp.dest('./'))
+        .pipe(gulp.dest('./demo/js'));
 });
 
 gulp.task('js:demo-jquery', function () {

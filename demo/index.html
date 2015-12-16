@@ -1,20 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>jQuery Plugin</title>
-  <link rel="stylesheet" href="css/styles.css">
+    <meta charset="UTF-8">
+    <title>jQuery Plugin</title>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <h1>jQuery Validate Plugin by AntonY</h1>
+<h1>jQuery Validate Plugin by AntonY</h1>
 
-  <div class="modal" id="modalAddProject">
+<div class="modal" id="modalAddProject">
     <form class="add-project-form" data-url="./server/form.php">
-      <div class="modal__body">
+        <div class="modal__body">
             <fieldset class="add-project-form__fieldset">
                 <label for="projectName" class="add-project-form__label">Название проекта</label>
                 <input type="text" id="projectName" name="projectName" class="add-project-form__input"
-                       placeholder="Введите название" data-empty-error="custom empty message" data-error-left-class="custom-error-class" data-error-left="true">
+                       placeholder="Введите название" data-empty-error="custom empty message"
+                       data-error-left-class="custom-error-class" data-error-left="true">
             </fieldset>
 
             <fieldset class="add-project-form__fieldset">
@@ -31,27 +32,30 @@
 
             <fieldset class="add-project-form__fieldset">
                 <label for="projectDescription" class="add-project-form__label">Сообщение</label>
-                            <textarea name="projectDescription" id="projectDescription" class="add-project-form__textarea"
+                            <textarea name="projectDescription" id="projectDescription"
+                                      class="add-project-form__textarea"
                                       placeholder="Кратко в чем суть"></textarea>
             </fieldset>
-      </div>
-      <div class="modal__footer">
-        <button class="btn btn-primary" type="submit">Добавить</button>
-      </div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn-primary" type="submit">Добавить</button>
+        </div>
     </form>
-  </div>
+</div>
 
-  <script src="js/jquery.min.js"></script>
-  <script src="js/jquery.bpopup.min.js"></script>
-  <script src="js/simpleValidate.min.js"></script>
+<script src="js/jquery.min.js"></script>
+<script src="js/jquery.bpopup.min.js"></script>
+<script src="js/simpleValidate.js"></script>
 
-  <script>
-      $('#modalAddProject form').bPopup({}, function(){
-          $('#modalAddProject form').validate();
-      });
+<script>
+    $('#modalAddProject form').bPopup({}, function () {
+        var $this = $(this);
+        $this.validate();
+    });
 
-      //$('#modalAddProject form').validate({});
-  </script>
+
+    //$('#modalAddProject form').validate();
+</script>
 
 </body>
 </html>
