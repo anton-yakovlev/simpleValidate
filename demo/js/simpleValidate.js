@@ -116,19 +116,25 @@
         }
 
         function _createModal(status) {
-            var messageHtml;
+            var modalHeaderHtml = '<div class="modal__header"><div class="b-close modal__close">Close</div> </div>',
+                errorMessage = 'Ошибка сервера, попробуйте еще раз',
+                successMessage = 'Все круто. Даннын отправились на сервер!';
 
             if (status === 'fail') {
                 messageHtml = $('<div/>', {
                     'class': 'modal',
                     id: 'errorMessage',
-                    html: 'Ошибка сервера, попробуйте еще раз'
+                    html: function(){
+                        return modalHeaderHtml + '<div class="modal__body">' + errorMessage + '</div>';
+                    }
                 });
             } else if (status === 'success') {
                 messageHtml = $('<div/>', {
                     'class': 'modal',
                     id: 'successMessage',
-                    html: 'Все круто. Даннын отправились на сервер!'
+                    html: function(){
+                        return modalHeaderHtml + '<div class="modal__body">' + successMessage + '</div>';
+                    }
                 });
             }
 
