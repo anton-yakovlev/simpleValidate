@@ -1,39 +1,52 @@
-// jQuery validation plugin
+// jQuery validation plugin by Anton Yakovlev
 
 ;(function ($) {
+
+    // -------- Public methods -------- //
     var defaults = {
-        errorInputClass: 'error',
-        errorLabelClass: 'label-error',
-        errorLabelLeftClass: 'label-error_left',
-        emptyMessage: 'Заполните поле',
-        serverErrorMessage: 'Ошибка сервера, попробуйте еще раз',
-        serverSuccessMessage: 'Все круто. Данные отправились на сервер!',
-        serverErrorDataMessage: 'Вы ввели не верные данные'
+        errorInputClass: 'error', // Class for invalid input
+        errorLabelClass: 'label-error', // Class for generated label, if input is invalid
+        errorLabelLeftClass: 'label-error_left', // Class for generated label with left position, if input is invalid
+        emptyMessage: 'Заполните поле', // Default message in tooltip
+        serverErrorMessage: 'Ошибка сервера, попробуйте еще раз', // Server error message if ajax failed
+        serverSuccessMessage: 'Все круто. Данные отправились на сервер!', // Server message if ajax succeed
+        serverErrorDataMessage: 'Вы ввели не верные данные' // Server error message if data invalid
     };
 
+
+    // -------- Module constructor -------- //
     function Validate(element, options) {
         this.settings = $.extend({}, defaults, options);
         this.element = element;
         this.init();
     }
 
+
+    // -------- Module init -------- //
     Validate.prototype.init = function () {
         console.log('[ Start Validate Module ... ]');
 
-        var form = $(this.element),
-            settings = this.settings,
-            errors = [];
+        var formElement = $(this.element),
+            settings = this.settings;
 
-        _addListeners(form);
+        _addListeners();
 
-        function _addListeners(form) {
-            $(document).on('submit', form, function (e) {
+
+        // -------- Listeners -------- //
+        // General listeners
+        function _addListeners() {
+            $(document).on('submit', formElement, function (e) {
                 e.preventDefault();
 
-                if (!_sendData(form)) _addErrorListeners(form);
+                // Validate form
+                var valid = _validation(formElement);
+
+                // Send data to server if valid else and show errors
+                valid ? _sendData(formElement) : _addErrorListeners(formElement);
             });
         }
 
+        // Add listeners on every input
         function _addErrorListeners(form) {
             var formInputs = form.find('input, textarea').not('input[type="file"], input[type="hidden"]');
 
@@ -49,6 +62,7 @@
             }
         }
 
+        // Remove listeners from every input
         function _removeErrorListeners(form) {
             var formInputs = form.find('input, textarea').not('input[type="file"], input[type="hidden"]');
 
@@ -58,21 +72,42 @@
             }
         }
 
-        function _sendData(form) {
-            var serverUrl = form.attr('data-url'),
-                serverAnswer = _ajaxForm(form, serverUrl);
 
-            if (serverAnswer) {
-                serverAnswer.done(function (answer) {
-                    answer.status === 'success' ? _createModal('success', settings.serverSuccessMessage) : _createModal('error-data', settings.serverErrorDataMessage);
+        // -------- Send data to server -------- //
+        // Send data to server
+        function _sendData(form) {
+            var data = form.serialize(),
+                serverUrl = form.attr('data-url'),
+                defObj;
+
+            // Ajax request to server
+            defObj = $.ajax({
+                    url: serverUrl,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: data
                 });
 
-                _clearForm(form);
-            }
+            defObj
+                .fail(function () {
+                    _createModal('server-error', settings.serverErrorMessage);
+                })
+                .done(function (answer) {
+                    //Show modals depend on result
+                    answer.status === 'success' ?
+                        _createModal('success', settings.serverSuccessMessage) :
+                        _createModal('error-data', settings.serverErrorDataMessage);
 
-            return serverAnswer;
+                    // Clear form
+                    _clearForm(form);
+                });
+
+            return defObj;
         }
 
+
+        // -------- Validate form -------- //
+        // General validation
         function _validation(form) {
             var formInputs = form.find('input, textarea').not('input[type="file"], input[type="hidden"]'),
                 valid = true;
@@ -82,12 +117,7 @@
             return valid;
         }
 
-        function _checkCurrent(selector) {
-            var valid = !_isEmpty(selector.val());
-            valid ? _doValid(selector) : _doInvalid(selector);
-            return valid;
-        }
-
+        // Check every input for valid data
         function _checkEvery(selectors) {
             var valid = true;
 
@@ -98,33 +128,38 @@
             return valid;
         }
 
+        // Check one input
+        function _checkCurrent(selector) {
+            var valid = !_isEmpty(selector.val());
+            valid ? _doValid(selector) : _doInvalid(selector);
+            return valid;
+        }
+
+        // Validate for empty data
         function _isEmpty(value) {
             return !Boolean(value);
         }
 
+        // Generate valid markup in form
         function _doValid(selector) {
-            var itemId = selector.attr('id'),
-                errorLabelId = selector.attr('name') + '-error',
-                index;
+            var errorLabelId = selector.attr('name') + '-error';
 
             selector.removeClass(settings.errorInputClass);
-            index = $.inArray(itemId, errors);
-            errors.splice(index, 1);
             $('#' + errorLabelId).remove();
         }
 
+        // Generate invalid markup in form
         function _doInvalid(selector) {
             var itemId = selector.attr('id'),
                 errorLabelId = selector.attr('name') + '-error',
-                errorLabelLeft = selector.attr('data-error-left'),
-                errorLabelLeftClass = selector.attr('data-error-left-class'),
-                errorLabelMessage = selector.attr('data-empty-error'),
-                errorLabelClasses;
+                $errorLabelId = $('#' + errorLabelId),
+                errorLabelLeft = selector.data('errorLeft'),
+                errorLabelLeftClass = selector.data('errorLeftClass'),
+                errorLabelMessage = selector.data('emptyError');
 
             selector.addClass(settings.errorInputClass);
-            errors.push(itemId);
 
-            if ($('#' + errorLabelId).length === 0) {
+            if (!$errorLabelId.length) {
                 $('<label>', {
                     id: errorLabelId,
                     text: function () {
@@ -132,6 +167,8 @@
                     },
                     'for': itemId,
                     'class': (function () {
+                        var errorLabelClasses;
+
                         if (errorLabelLeft) {
                             errorLabelClasses = settings.errorLabelClass + ' ' + (errorLabelLeftClass ? errorLabelLeftClass : settings.errorLabelLeftClass);
                         } else {
@@ -144,11 +181,14 @@
             }
         }
 
+        // Clear form and reset validation markup
         function _clearForm(form) {
             form[0].reset();
             _removeErrorListeners(form);
         }
 
+
+        // -------- Modals -------- //
         function _createModal(status, message) {
             var modalHeaderHtml = '<div class="modal__header"><div class="b-close modal__close">Close</div> </div>',
                 messageHtml = $('<div/>', {
@@ -166,25 +206,6 @@
                 .bPopup({
                     transition: 'slideDown'
                 });
-        }
-
-        function _ajaxForm(form, url) {
-            if (!_validation(form)) return false;
-
-            var data = form.serialize(),
-                result;
-
-            result = $.ajax({
-                    url: url,
-                    type: 'POST',
-                    dataType: 'json',
-                    data: data
-                })
-                .fail(function () {
-                    _createModal('server-error', settings.serverErrorMessage);
-                });
-
-            return result;
         }
     };
 
