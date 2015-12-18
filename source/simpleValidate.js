@@ -5,64 +5,97 @@
         errorInputClass: 'error',
         errorLabelClass: 'label-error',
         errorLabelLeftClass: 'label-error_left',
-        emptyMessage: 'Заполните поле'
+        emptyMessage: 'Заполните поле',
+        serverErrorMessage: 'Ошибка сервера, попробуйте еще раз',
+        serverSuccessMessage: 'Все круто. Данные отправились на сервер!',
+        serverErrorDataMessage: 'Вы ввели не верные данные'
     };
 
-    function Validate(element, options){
-        this.settings =  $.extend({}, defaults, options);
+    function Validate(element, options) {
+        this.settings = $.extend({}, defaults, options);
         this.element = element;
         this.init();
     }
 
-    Validate.prototype.init = function() {
+    Validate.prototype.init = function () {
         console.log('[ Start Validate Module ... ]');
 
         var form = $(this.element),
             settings = this.settings,
-            formInputs = form.find('input, textarea'),
-            errors = [],
-            serverUrl = form.attr('data-url');
+            errors = [];
 
-        //Start module when submitted
-        $(document).on('submit', form, function (e) {
-            e.preventDefault();
+        _addListeners(form);
 
-            _checkEvery(formInputs);
-            _addListeners(formInputs);
-            _sendData();
-        });
+        function _addListeners(form) {
+            $(document).on('submit', form, function (e) {
+                e.preventDefault();
 
-        function _addListeners(selectors) {
-            if (selectors) {
+                if (!_sendData(form)) _addErrorListeners(form);
+            });
+        }
 
-                for (var i = 0; i < selectors.length; i++) {
-                    var currentItem = $(selectors[i]);
+        function _addErrorListeners(form) {
+            var formInputs = form.find('input, textarea').not('input[type="file"], input[type="hidden"]');
 
-                    (function (ci) {
-                        $(document).on('keyup', currentItem, function () {
-                            _checkCurrent(ci);
-                        });
-                    })(currentItem);
+            for (var i = 0; i < formInputs.length; i++) {
+                var currentItem = $(formInputs[i]),
+                    currentItemId = '#' + $(formInputs[i]).attr('id');
 
-                }
-
+                (function (ci) {
+                    $(document).on('keyup', currentItemId, function () {
+                        _checkCurrent(ci);
+                    });
+                })(currentItem);
             }
+        }
+
+        function _removeErrorListeners(form) {
+            var formInputs = form.find('input, textarea').not('input[type="file"], input[type="hidden"]');
+
+            for (var i = 0; i < formInputs.length; i++) {
+                var currentItemId = '#' + $(formInputs[i]).attr('id');
+                $(document).off('keyup', currentItemId);
+            }
+        }
+
+        function _sendData(form) {
+            var serverUrl = form.attr('data-url'),
+                serverAnswer = _ajaxForm(form, serverUrl);
+
+            if (serverAnswer) {
+                serverAnswer.done(function (answer) {
+                    answer.status === 'success' ? _createModal('success', settings.serverSuccessMessage) : _createModal('error-data', settings.serverErrorDataMessage);
+                });
+
+                _clearForm(form);
+            }
+
+            return serverAnswer;
+        }
+
+        function _validation(form) {
+            var formInputs = form.find('input, textarea').not('input[type="file"], input[type="hidden"]'),
+                valid = true;
+
+            if (!_checkEvery(formInputs)) valid = false;
+
+            return valid;
         }
 
         function _checkCurrent(selector) {
             var valid = !_isEmpty(selector.val());
             valid ? _doValid(selector) : _doInvalid(selector);
+            return valid;
         }
 
         function _checkEvery(selectors) {
-            if (selectors) {
-                errors = [];
+            var valid = true;
 
-                for (var i = 0; i < selectors.length; i++) {
-                    var currentInput = $(selectors[i]);
-                    _checkCurrent(currentInput);
-                }
+            for (var i = 0; i < selectors.length; i++) {
+                if (!_checkCurrent($(selectors[i]))) valid = false;
             }
+
+            return valid;
         }
 
         function _isEmpty(value) {
@@ -113,30 +146,20 @@
 
         function _clearForm(form) {
             form[0].reset();
+            _removeErrorListeners(form);
         }
 
-        function _createModal(status) {
+        function _createModal(status, message) {
             var modalHeaderHtml = '<div class="modal__header"><div class="b-close modal__close">Close</div> </div>',
-                errorMessage = 'Ошибка сервера, попробуйте еще раз',
-                successMessage = 'Все круто. Даннын отправились на сервер!';
-
-            if (status === 'fail') {
                 messageHtml = $('<div/>', {
-                    'class': 'modal',
-                    id: 'errorMessage',
-                    html: function(){
-                        return modalHeaderHtml + '<div class="modal__body">' + errorMessage + '</div>';
+                    'class': (function () {
+                        return 'modal modal-' + status;
+                    })(),
+                    html: function () {
+                        return modalHeaderHtml + '<div class="modal__body">' + message + '</div>';
                     }
-                });
-            } else if (status === 'success') {
-                messageHtml = $('<div/>', {
-                    'class': 'modal',
-                    id: 'successMessage',
-                    html: function(){
-                        return modalHeaderHtml + '<div class="modal__body">' + successMessage + '</div>';
-                    }
-                });
-            }
+                })
+                ;
 
             messageHtml
                 .appendTo('body')
@@ -145,25 +168,23 @@
                 });
         }
 
-        function _sendData() {
-            if (errors.length) {
-                console.log('You have arrors');
-            } else {
-                $.ajax({
-                        url: serverUrl,
-                        type: 'POST',
-                        contentType: 'application/json; charset-utf-8',
-                        dataType: 'json',
-                        data: form.serialize()
-                    })
-                    .done(function () {
-                        console.log("success");
-                    })
-                    .fail(_createModal('fail'))
-                    .always(function () {
-                        console.log("complete");
-                    });
-            }
+        function _ajaxForm(form, url) {
+            if (!_validation(form)) return false;
+
+            var data = form.serialize(),
+                result;
+
+            result = $.ajax({
+                    url: url,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: data
+                })
+                .fail(function () {
+                    _createModal('server-error', settings.serverErrorMessage);
+                });
+
+            return result;
         }
     };
 

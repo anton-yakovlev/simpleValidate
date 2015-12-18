@@ -1,59 +1,93 @@
-*{
-  box-sizing: border-box;
+* {
+    box-sizing: border-box;
 }
 
 .error:focus,
 .error:active {
-  outline: 1px solid red;
+    outline: 1px solid red;
 }
 
 .modal {
-  background: #f6f5f4;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  width: 320px;
-  max-width: 96%;
-  padding: 24px 20px;
+    background: #f6f5f4;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    width: 320px;
+    max-width: 96%;
+    padding: 24px 20px;
+    position: relative;
+}
+
+.modal__header {
+    text-align: right;
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    left: 0;
+}
+
+.modal__title {
+    position: absolute;
+    top: -25px;
+    left: 20px;
+    color: #f8f7f6;
+    font-size: 12px;
+    line-height: 1;
+}
+
+.modal__close {
+    display: inline-block;
+    text-indent: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
+.modal__close:before{
+    content: 'X';
+    display: block;
+    text-indent: initial;
 }
 
 .modal__footer {
-  text-align: center;
+    text-align: center;
 }
 
 .add-project-form__fieldset {
-  border: none;
-  margin: 0 0 12px 0;
-  padding: 0;
+    border: none;
+    margin: 0 0 12px 0;
+    padding: 0;
 }
 
 .add-project-form__label {
-  display: block;
-  font-size: 16px;
-  margin-bottom: 4px;
+    display: block;
+    font-size: 16px;
+    margin-bottom: 4px;
 }
 
 .add-project-form__input {
-  width: 100%;
-  border-radius: 5px;
-  border: 1px solid #d6d5d3;
-  color: #333;
-  font-size: 14px;
-  height: 40px;
-  line-height: 40px;
-  padding: 0 10px;
+    width: 100%;
+    border-radius: 5px;
+    border: 1px solid #d6d5d3;
+    color: #333;
+    font-size: 14px;
+    height: 40px;
+    line-height: 40px;
+    padding: 0 10px;
 }
 
 .add-project-form__textarea {
-  width: 100%;
-  height: 114px;
-  border-radius: 5px;
-  border: 1px solid #d6d5d3;
-  color: #333;
-  font-size: 14px;
-  padding: 10px;
-  resize: none;
+    width: 100%;
+    height: 114px;
+    border-radius: 5px;
+    border: 1px solid #d6d5d3;
+    color: #333;
+    font-size: 14px;
+    padding: 10px;
+    resize: none;
 }
 
 .error {
-  border: 1px solid red;
+    border: 1px solid red;
 }
