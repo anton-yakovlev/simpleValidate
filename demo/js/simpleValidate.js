@@ -7,15 +7,12 @@
         errorInputClass: 'error', // Class for invalid input
         errorLabelClass: 'label-error', // Class for generated label, if input is invalid
         errorLabelLeftClass: 'label-error_left', // Class for generated label with left position, if input is invalid
-        emptyMessage: 'Заполните поле', // Default message in tooltip
-        serverErrorMessage: 'Ошибка сервера, попробуйте еще раз', // Server error message if ajax failed
-        serverSuccessMessage: 'Все круто. Данные отправились на сервер!', // Server message if ajax succeed
-        serverErrorDataMessage: 'Вы ввели не верные данные' // Server error message if data invalid
+        emptyMessage: 'Заполните поле' // Default message in tooltip
     };
 
 
     // -------- Module constructor -------- //
-    function Validate(element, options) {
+    function Validator(element, options) {
         this.settings = $.extend({}, defaults, options);
         this.element = element;
         this.init();
@@ -23,26 +20,32 @@
 
 
     // -------- Module init -------- //
-    Validate.prototype.init = function () {
-        console.log('[ Start Validate Module ... ]');
-
+    Validator.prototype.init = function () {
         var formElement = $(this.element),
             settings = this.settings;
 
-        _addListeners();
-
+        _addGeneralListeners();
 
         // -------- Listeners -------- //
         // General listeners
-        function _addListeners() {
+        function _addGeneralListeners() {
             $(document).on('submit', formElement, function (e) {
+                console.log('[ Start Validate Module by submit ... ]');
+
                 e.preventDefault();
 
                 // Validate form
                 var valid = _validation(formElement);
 
-                // Send data to server if valid else and show errors
-                valid ? _sendData(formElement) : _addErrorListeners(formElement);
+                // Add error listeners if inputs are invalid
+                if (!_validation(formElement)) {
+                    _addErrorListeners(formElement);
+                    console.log('[_addErrorListeners ...]');
+                } else {
+                    console.log('[return valid] : ' + valid);
+                    _clearForm(formElement);
+                    return valid;
+                }
             });
         }
 
@@ -73,39 +76,6 @@
         }
 
 
-        // -------- Send data to server -------- //
-        // Send data to server
-        function _sendData(form) {
-            var data = form.serialize(),
-                serverUrl = form.attr('data-url'),
-                defObj;
-
-            // Ajax request to server
-            defObj = $.ajax({
-                    url: serverUrl,
-                    type: 'POST',
-                    dataType: 'json',
-                    data: data
-                });
-
-            defObj
-                .fail(function () {
-                    _createModal('server-error', settings.serverErrorMessage);
-                })
-                .done(function (answer) {
-                    //Show modals depend on result
-                    answer.status === 'success' ?
-                        _createModal('success', settings.serverSuccessMessage) :
-                        _createModal('error-data', settings.serverErrorDataMessage);
-
-                    // Clear form
-                    _clearForm(form);
-                });
-
-            return defObj;
-        }
-
-
         // -------- Validate form -------- //
         // General validation
         function _validation(form) {
@@ -128,7 +98,7 @@
             return valid;
         }
 
-        // Check one input
+        // Check current input
         function _checkCurrent(selector) {
             var valid = !_isEmpty(selector.val());
             valid ? _doValid(selector) : _doInvalid(selector);
@@ -186,31 +156,10 @@
             form[0].reset();
             _removeErrorListeners(form);
         }
-
-
-        // -------- Modals -------- //
-        function _createModal(status, message) {
-            var modalHeaderHtml = '<div class="modal__header"><div class="b-close modal__close">Close</div> </div>',
-                messageHtml = $('<div/>', {
-                    'class': (function () {
-                        return 'modal modal-' + status;
-                    })(),
-                    html: function () {
-                        return modalHeaderHtml + '<div class="modal__body">' + message + '</div>';
-                    }
-                })
-                ;
-
-            messageHtml
-                .appendTo('body')
-                .bPopup({
-                    transition: 'slideDown'
-                });
-        }
     };
 
     $.fn.validate = function (options) {
-        new Validate(this, options);
+        new Validator(this, options);
         return this
     }
 
