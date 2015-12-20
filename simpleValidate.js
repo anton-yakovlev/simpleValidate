@@ -3,8 +3,6 @@
 ;(function ($) {
     $.extend($.fn, {
         validate: function (options) {
-            console.log('[ Validate func ...]');
-
             // If nothing is selected, return nothing; can't chain anyway
             if (!this.length) {
                 if (options && options.debug && window.console) {
@@ -29,11 +27,9 @@
                 event.preventDefault();
 
                 if (validator.form()) {
-                    console.log('validator.form() : true');
+                    validator.clearForm();
                     return true;
                 } else {
-                    console.log('validator.form() : false');
-                    //validator.focusInvalid();
                     return false;
                 }
             });
@@ -70,25 +66,15 @@
         prototype: {
             // Init function
             init: function () {
-                this.submitted = {};
-                this.invalid = {};
-                this.valid = true;
                 this.errorList = [];
+                $this = this;
             },
 
             // Check whole form procedure
             form: function () {
-                console.log('[ form() function ...]');
-
                 this.checkForm();
 
-                if (!this.valid()) {
-                    // Invalid form
-                    console.log('[ form() function ... addErrorListeners]');
-                    this.addErrorListeners();
-                }
-
-                return this.valid();
+                return $this.valid();
             },
 
             // Check all inputs
@@ -96,44 +82,57 @@
                 var selectors = $(this.currentForm).find('input, textarea').not('input[type="file"], input[type="hidden"]');
 
                 for (var i = 0; i < selectors.length; i++) {
-                    this.check( $(selectors[i]) );
+                    $this.check( $(selectors[i]) );
                 }
 
-                return this.valid();
+                return $this.valid();
             },
 
             // Check current input
             check: function (selector) {
-                var elementValue = selector.val();
+                var elementValue = selector.val(),
+                    elementValid = !$this.isEmpty(elementValue),
+                    elementFormName = selector.attr('name'),
+                    indexInErrorList = $.inArray(elementFormName, $this.errorList);
 
-                if (this.isEmpty(elementValue)) {
-                    this.errorList.push('error');
+                if (elementValid) {
+
+                    // Do markup validation
+                    $this.doValid(selector);
+
+                    // Remove error from Errors Array
+                    $this.errorList.splice(indexInErrorList, 1);
+
+                    return true;
+                } else {
+                    if (indexInErrorList < 0) { // Check if error already have been applied
+
+                        // Write error to Error Array
+                        $this.errorList.push(elementFormName);
+
+                        // Do invalid markup
+                        $this.doInvalid(selector);
+
+                        // Add error listener for the future
+                        $this.addErrorListener(selector);
+                    }
+
                     return;
                 }
-
-                return true;
             },
 
-            // Add listeners on every input
-            addErrorListeners: function () {
-                var formInputs = $(this.currentForm).find('input, textarea').not('input[type="file"], input[type="hidden"]'),
-                    checkFn = this.check;
+            // Add error listener for current input
+            addErrorListener: function (selector) {
+                var itemId = '#' + selector.attr('id');
 
-                for (var i = 0; i < formInputs.length; i++) {
-                    var currentItem = $(formInputs[i]),
-                        currentItemId = '#' + $(formInputs[i]).attr('id');
-
-                    (function (ci) {
-                        $(document).on('keyup', currentItemId, function () {
-                            checkFn(ci);
-                        });
-                    })(currentItem);
-                }
+                $(document).on('keyup', itemId, function () {
+                    $this.check(selector);
+                });
             },
 
             // Remove listeners from every input
             removeErrorListeners: function () {
-                var formInputs = $(this.currentForm).find('input, textarea').not('input[type="file"], input[type="hidden"]');
+                var formInputs = $($this.currentForm).find('input, textarea').not('input[type="file"], input[type="hidden"]');
 
                 for (var i = 0; i < formInputs.length; i++) {
                     var currentItemId = '#' + $(formInputs[i]).attr('id');
@@ -145,7 +144,7 @@
             doValid: function (selector) {
                 var errorLabelId = selector.attr('name') + '-error';
 
-                selector.removeClass(settings.errorInputClass);
+                selector.removeClass($this.settings.errorInputClass);
                 $('#' + errorLabelId).remove();
             },
 
@@ -158,22 +157,22 @@
                     errorLabelLeftClass = selector.data('errorLeftClass'),
                     errorLabelMessage = selector.data('emptyError');
 
-                selector.addClass(this.settings.errorInputClass);
+                selector.addClass($this.settings.errorInputClass);
 
                 if (!$errorLabelId.length) {
                     $('<label>', {
                         id: errorLabelId,
                         text: function () {
-                            return errorLabelMessage ? errorLabelMessage : this.settings.emptyMessage;
+                            return errorLabelMessage ? errorLabelMessage : $this.settings.emptyMessage;
                         },
                         'for': itemId,
                         'class': (function () {
                             var errorLabelClasses;
 
                             if (errorLabelLeft) {
-                                errorLabelClasses = this.settings.errorLabelClass + ' ' + (errorLabelLeftClass ? errorLabelLeftClass : this.settings.errorLabelLeftClass);
+                                errorLabelClasses = $this.settings.errorLabelClass + ' ' + (errorLabelLeftClass ? errorLabelLeftClass : $this.settings.errorLabelLeftClass);
                             } else {
-                                errorLabelClasses = this.settings.errorLabelClass;
+                                errorLabelClasses = $this.settings.errorLabelClass;
                             }
 
                             return errorLabelClasses;
@@ -190,6 +189,12 @@
             // Error list length
             size: function () {
                 return this.errorList.length;
+            },
+
+            // Clear form and remove listeners
+            clearForm: function () {
+                $($this.currentForm)[0].reset();
+                $this.removeErrorListeners();
             },
 
             // Validate for empty data
